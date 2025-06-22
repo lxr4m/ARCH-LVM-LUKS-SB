@@ -1,9 +1,12 @@
-# 🐧ARCH + 🗃️LVM + 🔐LUKS + 🛅Secure Boot
-# DESCRIPTION
-This setup guide is for minimal Arch system with following features:
+# **🐧ARCH + 🗃️LVM + 🔐LUKS + 🛅Secure Boot**
+
+# DISCLAIMER
+I am not responsible for any damages, loss of data, system corruption, or any other issues you may somehow get by following this guide.
+I recommend consulting with Arch Wiki in case you need clarifications or want to do things differently.
+
+This setup guide is for minimal Arch installation with following features:
 - GNOME desktop environment
-- LVM partition
-- LUKS encryption
+- LUKS encrypted LVM partition
 - Secure Boot
 
 Arch will be installed on bare metal using the entire space of the drive.
@@ -88,9 +91,18 @@ Arch will be installed on bare metal using the entire space of the drive.
 
 
 # PREPARATION
+### BIOS
+MAKE SURE YOUR BIOS IS VERSION 1.17 OR GREATER. Failure to do so may result in the BIOS setting changes BRICKING YOUR LAPTOP
+
+BIOS Settings:
+- Security -> **Secure Boot** -> Disabled
+- Configs -> Thunderbolt (TM) 3 -> **Thunderbolt BIOS Assist Mode** -> Enabled (Not required if you are using kernel 4.20 or newer)
+
+
+### Arch ISO
 1. Download the latest ISO from [archlinux.org](https://archlinux.org/download/)
-2. Transfer the ISO to the USB drive using [Rufus](https://rufus.ie/en/) or [Ventoy](https://www.ventoy.net/en/index.html)
-3. Boot your system from the USB drive into Arch live environment
+2. Write the ISO to the USB drive using [Rufus](https://rufus.ie/en/) or [Ventoy](https://www.ventoy.net/en/index.html)
+3. Boot your system from the USB drive into Arch Live environment
 
 
 ### Set Font
@@ -99,12 +111,10 @@ To a more readable size for better visibility in the terminal
 setfont ter-128b
 ```
 
-### (Optional) Configure Wireless Network
-
+### Network Connection
+Preferrably use Ethernet connection. Ethernet should be enabled by default in the Live environment.
+#### (Optional) Configure Wireless Network
 In order to be able to SSH into the system and access the Internet
-
-Ethernet should be enabled by default
-
 ```sh
 iwctl
 station list
@@ -112,15 +122,14 @@ station wlan0 scan
 station wlan0 get-networks
 station wlan0 connect NETWORKNAME
 exit
-ping 8.8.8.8
+```
+Check if you have a successful connection to the Internet
+```sh
+ping -c 3 archlinux.org
 ```
 
-At this point, you should have a successful connection to the Internet
-
 ### Set root password for SSH connection
-
 Can be a generic one since it'll only be used for the setup
-
 ```sh
 passwd
 ```
@@ -133,15 +142,13 @@ ip a
 Should see something like `192.168.1.100`
 
 ## SSH from another computer on your network
-
-Use the IP and password from the previous steps
-
+Open terminal on another machine.
+Using the IP and password from the previous steps:
 ```sh
 ssh root@192.168.1.100
 ```
 
-# BEGIN INSTALLATION
-
+# INSTALLATION
 ### Update Arch Keyring
 To ensure the security and integrity of packages
 ```sh
@@ -155,20 +162,20 @@ timedatectl set-ntp true
 ```
 
 ## Partition the drive for LVM on LUKS
-
 ### Check the name of the drive
 Lists all block devices
 ```sh
 lsblk
 ```
-For example, _nvme0n1_
+For example, your drive will be shown as _nvme0n1_
 
 ### Use _cfdisk_ to create the partitions
 ```sh
 cfdisk /dev/nvme0n1
 ```
 
-> [!caution] DATA LOSS RISK!
+> [!caution]
+> DATA LOSS RISK!
 > Perform the next steps only if you're ready to wipe all data from the drive
 
 1. Delete all existing partitions
@@ -209,8 +216,8 @@ cryptsetup luksFormat -v --cipher aes-xts-plain64 --key-size 512 --hash sha512 -
 
 > Read about different keys for cryptsetup command and adjust it to your needs
 
-> [!important] USE A STRONG PASSWORD!
->
+> [!important] 
+> USE A STRONG PASSWORD!
 > High entropy is your friend. At least 65 bits. Which means 14 random chars from a-z or a random English sentence of \> 108 characters length
 
 
@@ -240,6 +247,7 @@ vgcreate vgroup /dev/mapper/cryptluks
 ```
 
 ### Create Logical Volumes
+Feel free to adjust SWAP volume to your system specs. Good practice is 1.5-2 times the amount of RAM you have for systems with less than 32Gb of RAM.
 ```sh
 lvcreate -L 64G vgroup -n root
 lvcreate -L 32G vgroup -n var
@@ -247,12 +255,15 @@ lvcreate -L 8G vgroup -n tmp
 lvcreate -L 16G vgroup -n swap
 lvcreate -l +100%FREE vgroup -n home
 lvreduce -L -256M vgroup/home
-lvdisplay
 ```
 - `-L`: size of the volume
 - `-n`: name of the volume
+Leave 256MiB of free space in the volume group the e2scrub command. It requires the LVM volume group to have at least 256MiB of unallocated space to dedicate to the snapshot.
 
-Leave 256MiB of free space in the volume group the e2scrub command. It requires the LVM volume group to have at least 256MiB of unallocated space to dedicate to the snapshot
+Check Logical Volumes table
+```sh
+lvdisplay
+```
 
 ### Format Logical Volumes
 ```sh
@@ -260,7 +271,6 @@ mkfs.ext4 -L ROOT /dev/vgroup/root
 mkfs.ext4 -L VAR /dev/vgroup/var
 mkfs.ext4 -L TMP /dev/vgroup/tmp
 mkfs.ext4 -L HOME /dev/vgroup/home
-lsblk -f
 ```
 
 ### Mount Filesystems
@@ -271,14 +281,17 @@ mount --mkdir /dev/nvme0n1p2 /mnt/boot
 mount --mkdir /dev/vgroup/var /mnt/var
 mount --mkdir /dev/vgroup/tmp /mnt/tmp
 mount --mkdir /dev/vgroup/home /mnt/home
-lsblk
 ```
 
 ### Enable Swap space
 ```sh
 mkswap /dev/vgroup/swap
 swapon /dev/vgroup/swap
-lsblk
+```
+
+### Check that everything is mounted and labeled correctly
+```sh
+lsblk -f
 ```
 
 ## Install Base System
@@ -301,33 +314,46 @@ genfstab -U /mnt >> /mnt/etc/fstab
 echo 'tmpfs /tmp tmpfs defaults,noatime,mode=1777 0 0' >> /mnt/etc/fstab
 ```
 
-## Chroot into the new system
+## Enter the newly installed Arch system
+```sh
+arch-chroot /mnt
+```
 
-### Refresh pacman keyring
+### Refresh Pacman Keyring
 ```sh
 pacman-key --init && pacman-key --populate archlinux
 ```
 
 ## Set up the environment
 
+### Time
 #### Set your time zone
 By creating a symbolic link to the appropriate timezone file
 ```sh
-ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
+ln -sf /usr/share/zoneinfo/US/Hawaii /etc/localtime
 ```
+> [!tip]
+> Hit TAB key after typing `ln -sf /usr/share/zoneinfo/`. This will give you a list of all possible values. Find your relevant one (e.g. US/) and select it. Then hit TAB again to get a list of cities. Pick the closest/most relevant one.
+> ```sh
+> sed -i 's/^#\s*en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
+> ```
 
-(Optional) See available timezones:
+#### Set the system clock
+Using the hardware clock
 ```sh
-ls /usr/share/zoneinfo/
+hwclock --systohc
 ```
 
-#### Enable the specified locales 
+### Localization
+#### Enable locales 
 Edit `/etc/locale.gen`
 Uncomment desired locales (`en_US.UTF-8`)
-**OR Speedrun**
-```sh
-sed -i 's/^#\s*en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
-```
+
+> [!tip]
+> 💨 SPEEDRUN COMMAND
+> ```sh
+> sed -i 's/^#\s*en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
+> ```
 
 #### Generate locales
 ```sh
@@ -340,6 +366,7 @@ Set the system language to English (US)
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 ```
 
+### Hostname and Localhost
 #### Set machine Hostname in `/etc/hostname`
 Replace "_arch_" with desired hostname
 ```sh
@@ -347,63 +374,49 @@ echo "arch" > /etc/hostname | tee -a /etc/hostname
 ```
 
 #### Add Local domain info to `/etc/hosts`
-Replace "_arch_" with desired hostname
+Replace "_arch_" with hostname used in `/etc/hostname`
 ```sh
 echo -e "127.0.0.1\tlocalhost\n::1\t\tlocalhost\n127.0.1.1\tarch.localdomain\tarch" | tee -a /etc/hosts
 ```
 
-#### Enable pacman animation and color
+`/etc/hostname` should look like this:
 ```sh
-sed -i -e 's/^#Color/Color/' -e '/^Color/a ILoveCandy' /etc/pacman.conf
+127.0.0.1     localhost
+::1           localhost
+127.0.1.1	    arch.localdomain	arch
 ```
 
-## Install Additional Packages
-Feel free to adjust to your needs
-**System**
+### Install Extra Packages
+Feel free to add the ones you need
 ```sh
-pacman -S btop curl fastfetch fwupd git inxi lm_sensors pipewire pipewire-audio sbctl sbsigntools sof-firmware mokutil mtools rsync timeshift
-```
-**Tools**
-```sh
-pacman -S firefox rhythmbox veracrypt vlc
-```
-**Connections**
-```sh
-pacman -S bluez bluez-utils firewalld ipset iptables-nft network-manager-applet networkmanager openssh
-```
-**Fonts**
-```sh
-pacman -S ttf-firacode-nerd ttf-dejavu ttf-liberation noto-fonts ttf-jetbrains-mono ttf-fira-code
+pacman -S bluez bluez-utils fastfetch firefox fwupd network-manager-applet networkmanager openssh pipewire pipewire-audio sbctl
 ```
 
-## Install Desktop Environment
+#### Enable Services
+```sh
+systemctl enable bluetooth.service NetworkManager sshd
+```
+
+### Install Desktop Environment
+We will install GNOME with GDM greeter.
 Options:
-1. Barebones GNOME setup
+1. **Barebones GNOME** setup
 ```sh
-pacman -S gnome-shell gdm gnome-control-center gnome-backgrounds gnome-keyring xdg-user-dirs-gtk network-manager-applet alacritty nautilus-python nautilus
+pacman -S gnome-shell gdm gnome-control-center gnome-backgrounds gnome-keyring xdg-user-dirs-gtk network-manager-applet terminator nautilus-python nautilus
 ```
 
-2. Standard GNOME setup
+2. **Standard GNOME** setup
 ```sh
 pacman -S gdm gnome nautilus-python
 ```
 
-### Set Autologin for DE
+#### Enable GDM Service
 ```sh
-nano /etc/gdm/custom.conf
-```
-Add under [daemon] section
-```sh
-AutomaticLoginEnable=True
-AutomaticLogin=iron
-```
-
-## Enable SystemD services
-```sh
-systemctl enable bluetooth.service gdm.service NetworkManager sshd
+systemctl enable gdm.service
 ```
 
 ### Set up User accounts
+Installing Arch creates the root user
 #### Set Root password
 ```sh
 passwd
@@ -414,6 +427,7 @@ Replace "_user_" with a desired user name
 ```sh
 useradd -m -G wheel user && passwd user
 ```
+This will create a new user and add it to the wheel group.
 
 ##### Edit the Sudoers 
 To allow your user to use SUDO
@@ -422,33 +436,11 @@ visudo
 ```
 Uncomment `%wheel ALL=(ALL) ALL`
 
-### (Optional) Set persistent console font
-```sh
-vim /etc/vconsole.conf
-```
-Append to the file:
-```sh
-FONT=ter-128b
-CONSOLEFONT=ter-128b
-```
-
-**OR Speedrun**
-
-```sh
-echo -e "FONT=ter-128b\nCONSOLEFONT=ter-128b" >> /etc/vconsole.conf && cat /etc/vconsole.conf
-```
-
-To list available console font names:
-```sh
-ls /usr/share/kbd/consolefonts/
-```
-
-
 ## Configure `mkinitcpio.conf` HOOKS for **systemd** initramfs
 > Make sure the [lvm2](https://archlinux.org/packages/?name=lvm2) package is [installed](https://wiki.archlinux.org/title/Install "Install")
 
 ```sh
-vim /etc/mkinitcpio.conf
+nano /etc/mkinitcpio.conf
 ```
 
 Add `systemd keyboard sd-vconsole sd-encrypt lvm2` hooks to [mkinitcpio.conf](https://wiki.archlinux.org/title/Mkinitcpio.conf "Mkinitcpio.conf")
@@ -457,11 +449,11 @@ Add `systemd keyboard sd-vconsole sd-encrypt lvm2` hooks to [mkinitcpio.conf](ht
 HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt lvm2 filesystems fsck shutdown)
 ```
 
-**OR Speedrun** using `sed`
+> [!tip] 💨SPEEDRUN COMMAND using `sed`
+> ```sh
+> sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt lvm2 resume filesystems fsck shutdown)/' /etc/mkinitcpio.conf && cat /etc/mkinitcpio.conf
+> ```
 
-```sh
-sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt lvm2 resume filesystems fsck shutdown)/' /etc/mkinitcpio.conf && cat /etc/mkinitcpio.conf
-```
 
 ### Recreate the initramfs image
 Based on the current configuration, ensuring that the necessary modules and hooks are included
@@ -484,7 +476,7 @@ Copy the UUID for use in `/etc/default/grub`
 
 #### Specify root in Grub
 ```sh
-vim /etc/default/grub
+nano /etc/default/grub
 ```
 Add parameters:
 ```sh
@@ -494,7 +486,8 @@ GRUB_ALLOWEDSECUREBOOT_MODULES="linux tpm"
 ```
 Replace `<UUID>` with UUID from `blkid` output
 
-> [!important] Execution priority
+> [!important]
+> Execution priority
 > GRUB_CMDLINE_LINUX supersedes GRUB_CMDLINE_LINUX_DEFAULT in case of the emergency
 
 ### Re-generate Grub config
@@ -597,6 +590,7 @@ Keep the backup file in a safe place, such as a USB drive.
 ```sh
 sudo cryptsetup luksHeaderBackup /dev/nvme1n0p3 --header-backup-file /path/to/backup_header_file/luks-header-backup-$(date -I)
 ```
+- Replace _/dev/nvme1n0p3_ with your encrypted LUKS partition path if different
 - Replace _/path/to/backup_header_file/_ with the actual directory where you want to save the backup file
 - `$(date -I)` will append the current date in ISO format to the filename
 
@@ -605,7 +599,73 @@ sudo cryptsetup luksHeaderBackup /dev/nvme1n0p3 --header-backup-file /path/to/ba
 sudo cryptsetup luksHeaderRestore /dev/<your-disk-luks> --header-backup-file /path/to/backup_header_file
 ```
 
+### Install Additional Packages
+Some useful packages you might like to install
+**System**
+```sh
+sudo pacman -S btop curl git inxi lm_sensors sbsigntools mokutil mtools rsync timeshift
+```
+**Tools**
+```sh
+sudo pacman -S keepassxc libreoffice-fresh rhythmbox veracrypt vlc
+```
+**Network**
+```sh
+sudo pacman -S firewalld ipset iptables-nft
+```
+**Fonts**
+```sh
+sudo pacman -S ttf-firacode-nerd ttf-dejavu ttf-liberation noto-fonts ttf-jetbrains-mono ttf-fira-code
+```
 
+### Enable Autologin for GNOME
+```sh
+sudo nano /etc/gdm/custom.conf
+```
+Add under [daemon] section
+```sh
+AutomaticLoginEnable=True
+AutomaticLogin=iron
+```
+
+### Optimize Pacman Mirrorlist
+This will improve the speed of your downloads.
+The mirrors which are the closest to you should be at the top and the mirrors which you do not need can be deleted. 
+You can have multiple countries on the list.
+
+Edit `/etc/pacman.d/mirrorlist`:
+```sh
+sudo nano /etc/pacman.d/mirrorlist
+```
+
+### Add Bling
+#### Enable Pacman animation and color
+To add some bling to your terminal
+This will uncomment `Color` and `ILoveCandy` in _/etc/pacman.conf_:
+```sh
+sed -i -e 's/^#Color/Color/' -e '/^Color/a ILoveCandy' /etc/pacman.conf
+```
+
+#### Set persistent console font
+```sh
+sudo nano /etc/vconsole.conf
+```
+Append to the file:
+```sh
+FONT=ter-128b
+CONSOLEFONT=ter-128b
+```
+
+> [!tip]
+> 💨 SPEEDRUN COMMAND
+> ```sh
+> echo -e "FONT=ter-128b\nCONSOLEFONT=ter-128b" >> /etc/vconsole.conf && cat /etc/vconsole.conf
+> ```
+
+To list available console font names:
+```sh
+ls /usr/share/kbd/consolefonts/
+```
 
 # Congratulations! 🎉
 You've completed the setup
