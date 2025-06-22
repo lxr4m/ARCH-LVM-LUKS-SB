@@ -19,7 +19,7 @@ Arch will be installed on bare metal using the entire space of the drive.
   - [SSH from Another Computer on Your Network](#ssh-from-another-computer-on-your-network)
 - [Begin Installation](#begin-installation)
   - [Update Arch Keyring](#update-arch-keyring)
-  - [Sync System Clock](#sync-system-clock)
+  - [Enable Network Time Protocol (NTP)](#enable-network-time-protocol-(NTP))
   - [Partition the Drive for LVM on LUKS](#partition-the-drive-for-lvm-on-luks)
     - [Check the Name of the Drive](#check-the-name-of-the-drive)
     - [Use cfdisk to Create the Partitions](#use-cfdisk-to-create-the-partitions)
@@ -93,7 +93,8 @@ Arch will be installed on bare metal using the entire space of the drive.
 3. Boot your system from the USB drive into Arch live environment
 
 
-### Set Comfortable Font
+### Set Font
+To a more readable size for better visibility in the terminal
 ```sh
 setfont ter-128b
 ```
@@ -125,12 +126,11 @@ passwd
 ```
 
 ### Get your local IP
-
-We'll use it to SSH into the system
-
+We'll use it to SSH into the system.
 ```sh
 ip a
 ```
+Should see something like `192.168.1.100`
 
 ## SSH from another computer on your network
 
@@ -148,8 +148,8 @@ To ensure the security and integrity of packages
 pacman -Sy archlinux-keyring
 ```
 
-### Sync system clock
-
+### Enable Network Time Protocol (NTP)
+To synchronize the system clock with internet time servers
 ```sh
 timedatectl set-ntp true
 ```
@@ -157,6 +157,7 @@ timedatectl set-ntp true
 ## Partition the drive for LVM on LUKS
 
 ### Check the name of the drive
+Lists all block devices
 ```sh
 lsblk
 ```
@@ -180,7 +181,6 @@ cfdisk /dev/nvme0n1
 ## Format Partitions
 
 ### EFI partition
-
 ```sh
 mkfs.fat -F32 -n EFI /dev/nvme0n1p1
 ```
@@ -188,7 +188,6 @@ mkfs.fat -F32 -n EFI /dev/nvme0n1p1
 - `-n`: sets the label
 
 ### Boot Partition
-
 ```sh
 mkfs.ext4 -L BOOT /dev/nvme0n1p2
 ```
@@ -216,15 +215,12 @@ cryptsetup luksFormat -v --cipher aes-xts-plain64 --key-size 512 --hash sha512 -
 
 
 #### (Optional) Check LUKS header information
-
 ```sh
 cryptsetup luksDump /dev/nvme0n1p3
 ```
 
 ### Open encrypted LUKS container
-
-Give it a name you want at the end of the command (e.g. cryptluks)
-
+Map it to a device a name you want at the end of the command (e.g. cryptluks)
 ```sh
 cryptsetup open /dev/nvme0n1p3 cryptluks
 ```
@@ -233,21 +229,17 @@ The decrypted container is now available at `/dev/mapper/cryptluks`
 ## Create Volumes
 
 ### Create Physical Volume
-
 ```sh
 pvcreate /dev/mapper/cryptluks
 ```
 
 ### Create Volume Group for Logical Volumes
-
 Assign it the name you like (e.g. vgroup)
-
 ```sh
 vgcreate vgroup /dev/mapper/cryptluks
 ```
 
 ### Create Logical Volumes
-
 ```sh
 lvcreate -L 64G vgroup -n root
 lvcreate -L 32G vgroup -n var
@@ -263,7 +255,6 @@ lvdisplay
 Leave 256MiB of free space in the volume group the e2scrub command. It requires the LVM volume group to have at least 256MiB of unallocated space to dedicate to the snapshot
 
 ### Format Logical Volumes
-
 ```sh
 mkfs.ext4 -L ROOT /dev/vgroup/root
 mkfs.ext4 -L VAR /dev/vgroup/var
@@ -273,7 +264,6 @@ lsblk -f
 ```
 
 ### Mount Filesystems
-
 ```sh
 mount /dev/vgroup/root /mnt
 mount --mkdir /dev/nvme0n1p1 /mnt/efi
@@ -285,7 +275,6 @@ lsblk
 ```
 
 ### Enable Swap space
-
 ```sh
 mkswap /dev/vgroup/swap
 swapon /dev/vgroup/swap
@@ -293,27 +282,21 @@ lsblk
 ```
 
 ## Install Base System
-
 ### Pacstrap system packages
-
 ```sh
 pacstrap -K /mnt base base-devel coreutils cryptsetup dkms e2fsprogs efibootmgr grub intel-ucode linux linux-firmware linux-headers lvm2 man-db man-pages nano texinfo terminus-font tpm2-tools vim
 ```
 > [!important] INTEL or AMD?
-> Replace `intel-ucode` with `amd-ucode` if you have and AMD CPU
+> Replace `intel-ucode` with `amd-ucode` if you have an AMD CPU
 
-### Generate `/etc/fstab` file 
-
+### Generate `/etc/fstab` file
 To ensure that partitions are mounted at boot
-
 ```sh
 genfstab -U /mnt >> /mnt/etc/fstab
 ```
 
 #### Make `/tmp` write to RAM
-
 `/tmp` directory will use RAM for storage, which is faster than using disk storage, and it will be cleared on reboot, making it suitable for temporary files. Increases speed and reduce SSD wear
-
 ```sh
 echo 'tmpfs /tmp tmpfs defaults,noatime,mode=1777 0 0' >> /mnt/etc/fstab
 ```
@@ -321,7 +304,6 @@ echo 'tmpfs /tmp tmpfs defaults,noatime,mode=1777 0 0' >> /mnt/etc/fstab
 ## Chroot into the new system
 
 ### Refresh pacman keyring
-
 ```sh
 pacman-key --init && pacman-key --populate archlinux
 ```
@@ -329,7 +311,7 @@ pacman-key --init && pacman-key --populate archlinux
 ## Set up the environment
 
 #### Set your time zone
-
+By creating a symbolic link to the appropriate timezone file
 ```sh
 ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 ```
@@ -340,95 +322,83 @@ ls /usr/share/zoneinfo/
 ```
 
 #### Enable the specified locales 
-
 Edit `/etc/locale.gen`
 Uncomment desired locales (`en_US.UTF-8`)
-
 **OR Speedrun**
-
 ```sh
 sed -i 's/^#\s*en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
 ```
 
 #### Generate locales
-
 ```sh
 locale-gen
 ```
 
 #### Update `locale.conf` file
-
+Set the system language to English (US)
 ```sh
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 ```
 
 #### Set machine Hostname in `/etc/hostname`
-
 Replace "_arch_" with desired hostname
-
 ```sh
 echo "arch" > /etc/hostname | tee -a /etc/hostname
 ```
 
 #### Add Local domain info to `/etc/hosts`
-
 Replace "_arch_" with desired hostname
-
 ```sh
 echo -e "127.0.0.1\tlocalhost\n::1\t\tlocalhost\n127.0.1.1\tarch.localdomain\tarch" | tee -a /etc/hosts
 ```
 
 #### Enable pacman animation and color
-
 ```sh
 sed -i -e 's/^#Color/Color/' -e '/^Color/a ILoveCandy' /etc/pacman.conf
 ```
 
 ## Install Additional Packages
-System
+Feel free to adjust to your needs
+**System**
 ```sh
 pacman -S btop curl fastfetch fwupd git inxi lm_sensors pipewire pipewire-audio sbctl sbsigntools sof-firmware mokutil mtools rsync timeshift
 ```
-Tools
+**Tools**
 ```sh
 pacman -S firefox rhythmbox veracrypt vlc
 ```
-Connections
+**Connections**
 ```sh
 pacman -S bluez bluez-utils firewalld ipset iptables-nft network-manager-applet networkmanager openssh
 ```
-Fonts
+**Fonts**
 ```sh
 pacman -S ttf-firacode-nerd ttf-dejavu ttf-liberation noto-fonts ttf-jetbrains-mono ttf-fira-code
 ```
 
 ## Install Desktop Environment
-
-- Barebones GNOME setup
-
+Options:
+1. Barebones GNOME setup
 ```sh
 pacman -S gnome-shell gdm gnome-control-center gnome-backgrounds gnome-keyring xdg-user-dirs-gtk network-manager-applet alacritty nautilus-python nautilus
 ```
 
-- Standard GNOME setup
-
+2. Standard GNOME setup
 ```sh
 pacman -S gdm gnome nautilus-python
 ```
 
 ### Set Autologin for DE
-
 ```sh
 nano /etc/gdm/custom.conf
 ```
-
 Add under [daemon] section
 ```sh
 AutomaticLoginEnable=True
 AutomaticLogin=iron
 ```
 
-## Enable services
+## Enable SystemD services
 ```sh
 systemctl enable bluetooth.service gdm.service NetworkManager sshd
 ```
@@ -440,29 +410,24 @@ passwd
 ```
 
 #### Create a User
-
 Replace "_user_" with a desired user name
-
 ```sh
 useradd -m -G wheel user && passwd user
 ```
 
 ##### Edit the Sudoers 
 To allow your user to use SUDO
-
 ```sh
 visudo
 ```
-
 Uncomment `%wheel ALL=(ALL) ALL`
 
 ### (Optional) Set persistent console font
-
-List available console font names `ls /usr/share/kbd/consolefonts/`
-
 ```sh
 vim /etc/vconsole.conf
-# Place in the file
+```
+Append to the file:
+```sh
 FONT=ter-128b
 CONSOLEFONT=ter-128b
 ```
@@ -473,8 +438,13 @@ CONSOLEFONT=ter-128b
 echo -e "FONT=ter-128b\nCONSOLEFONT=ter-128b" >> /etc/vconsole.conf && cat /etc/vconsole.conf
 ```
 
-## Configure `mkinitcpio.conf` HOOKS for **systemd** initramfs
+To list available console font names:
+```sh
+ls /usr/share/kbd/consolefonts/
+```
 
+
+## Configure `mkinitcpio.conf` HOOKS for **systemd** initramfs
 > Make sure the [lvm2](https://archlinux.org/packages/?name=lvm2) package is [installed](https://wiki.archlinux.org/title/Install "Install")
 
 ```sh
@@ -494,7 +464,7 @@ sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf km
 ```
 
 ### Recreate the initramfs image
-
+Based on the current configuration, ensuring that the necessary modules and hooks are included
 ```sh
 mkinitcpio -P
 ```
@@ -506,23 +476,17 @@ grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=GRUB --mod
 ```
 
 #### Get UUID for the Encrypted drive
-
 Replace `/dev/nvme0n1p3` with the appropriate path to the LUKS partition
-
 ```sh
 blkid -o value -s UUID /dev/nvme0n1p3
 ```
-
 Copy the UUID for use in `/etc/default/grub`
 
 #### Specify root in Grub
-
 ```sh
 vim /etc/default/grub
 ```
-
-Add parameters.
-
+Add parameters:
 ```sh
 GRUB_CMDLINE_LINUX_DEFAULT="quiet splash loglevel=3 audit=0"
 GRUB_CMDLINE_LINUX="rd.luks.name=<UUID>=cryptluks root=/dev/vgroup/root"
@@ -530,41 +494,20 @@ GRUB_ALLOWEDSECUREBOOT_MODULES="linux tpm"
 ```
 Replace `<UUID>` with UUID from `blkid` output
 
-
 > [!important] Execution priority
 > GRUB_CMDLINE_LINUX supersedes GRUB_CMDLINE_LINUX_DEFAULT in case of the emergency
 
 ### Re-generate Grub config
-
 ```sh
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
 ## Exit Chroot and Reboot
-
 ```sh
 exit
 umount -R /mnt && swapoff -a # This allows noticing any "busy" partitions, and finding the cause with fuser
 reboot
 ```
-
-# NOTES
-### Backup LUKS Header
-It's important for your data security in case something goes wrong and the header is damaged.
-Keep the backup file in a safe place, such as a USB drive. 
-
-```sh
-sudo cryptsetup luksHeaderBackup /dev/nvme1n0p3 --header-backup-file /path/to/backup_header_file/luks-header-backup-$(date -I)
-```
-- Replace _/path/to/backup_header_file/_ with the actual directory where you want to save the backup file
-- `$(date -I)` will append the current date in ISO format to the filename
-
-#### (Optional) Restore header from backup
-
-```sh
-sudo cryptsetup luksHeaderRestore /dev/<your-disk-luks> --header-backup-file /path/to/backup_header_file
-```
-
 
 # Enable Secure Boot
 ## UEFI config
@@ -646,6 +589,22 @@ Should be:
 - Setup Mode:     ✓ Disabled
 - Secure Boot:    ✓ Enabled
 - Vendor Keys:    none
+
+# NOTES
+### Backup LUKS Header
+It's important for your data security in case something goes wrong and the header is damaged.
+Keep the backup file in a safe place, such as a USB drive. 
+```sh
+sudo cryptsetup luksHeaderBackup /dev/nvme1n0p3 --header-backup-file /path/to/backup_header_file/luks-header-backup-$(date -I)
+```
+- Replace _/path/to/backup_header_file/_ with the actual directory where you want to save the backup file
+- `$(date -I)` will append the current date in ISO format to the filename
+
+#### (Optional) Restore header from backup
+```sh
+sudo cryptsetup luksHeaderRestore /dev/<your-disk-luks> --header-backup-file /path/to/backup_header_file
+```
+
 
 
 # Congratulations! 🎉
