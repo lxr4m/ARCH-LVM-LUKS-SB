@@ -311,7 +311,7 @@ echo -e "127.0.0.1\tlocalhost\n::1\t\tlocalhost\n127.0.1.1\tarch.localdomain\tar
 ### Install Extra Packages
 Feel free to add the ones you need
 ```sh
-pacman -S bluez bluez-utils fastfetch firefox fwupd network-manager-applet networkmanager openssh pipewire pipewire-audio sbctl
+pacman -S bluez bluez-utils fastfetch firefox fwupd network-manager-applet networkmanager openssh pipewire pipewire-audio sbctl sof-firmware
 ```
 
 #### Enable Services
