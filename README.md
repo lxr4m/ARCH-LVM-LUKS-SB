@@ -29,7 +29,6 @@ Arch will be installed on bare metal using the entire space of the drive.
     - [Create Encrypted Container](#create-encrypted-container)
     - [Check LUKS Header Information](#optional-check-luks-header-information)
     - [Open Encrypted LUKS Container](#open-encrypted-luks-container)
-  - [Backup LUKS Header](#backup-luks-header)
   - [Create Volumes](#create-volumes)
     - [Create Physical Volume](#create-physical-volume)
     - [Create Volume Group for Logical Volumes](#create-volume-group-for-logical-volumes)
@@ -83,6 +82,8 @@ Arch will be installed on bare metal using the entire space of the drive.
     - [Enroll Custom Secure Boot Keys](#enroll-custom-secure-boot-keys)
     - [Confirm Setup Mode is Disabled](#confirm-setup-mode-is-disabled)
     - [Sign Bootloader and Kernels Before Rebooting](#sign-bootloader-and-kernels-before-rebooting)
+ - [Notes](#notes)
+    - [Backup LUKS Header](#backup-luks-header)
 - [Congratulations! 🎉](#congratulations)
 
 
