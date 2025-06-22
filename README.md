@@ -105,6 +105,24 @@ cfdisk /dev/nvme0n1
 4. New Partition -> Partition Size: **510G** (rest of the space) -> Type: **Linux LVM**
 5. Write partition table to disk
 
+It should look something like this:
+```
+                               Disk: /dev/nvme0n1
+           Size: 512.89 GiB, 57809543168 bytes, 1000409264 sectors
+          Label: gpt, identifier: C7576585E-B053-4677-8B55-69FD734B9271
+
+    Device               Start         End     Sectors    Size Type
+    /dev/nvme0n1p1        2048     2099199     2097152      1G EFI System
+    /dev/nvme0n1p2     2099200    23070719    20971520      1G Linux filesystem
+>>  /dev/nvme0n1p3    13070720  1000409230   977338511  500.9G Linux LVM
+
+ ┌────────────────────────────────────────────────────────────────────────────┐
+ │Partition UUID: 78D36147-ED9B-CC4B-8F96-6DFD72336D23                        │
+ │Partition type: Linux LVM (0FC63DAF-1243-5123-8E79-3D69D8466DE4)     │
+ └────────────────────────────────────────────────────────────────────────────┘
+     [ Delete ]  [ Resize ]  [  Quit  ]  [  Type  ]  [  Help  ]  [  Write ]
+     [  Dump  ]
+```
 
 ## Format Partitions
 
