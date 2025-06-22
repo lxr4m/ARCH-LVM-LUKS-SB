@@ -473,7 +473,8 @@ Add `systemd keyboard sd-vconsole sd-encrypt lvm2` hooks to [mkinitcpio.conf](ht
 HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt lvm2 filesystems fsck shutdown)
 ```
 
-> [!tip] 💨SPEEDRUN COMMAND using `sed`
+> [!tip]
+> 💨SPEEDRUN COMMAND using `sed`
 > ```sh
 > sed -i 's/^HOOKS=.*/HOOKS=(base systemd keyboard autodetect microcode modconf kms sd-vconsole block sd-encrypt lvm2 resume filesystems fsck shutdown)/' /etc/mkinitcpio.conf && cat /etc/mkinitcpio.conf
 > ```
