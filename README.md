@@ -10,7 +10,9 @@ I recommend consulting with Arch Wiki in case you need clarifications or want to
 This setup guide is for minimal Arch installation with following features:
 - GNOME desktop environment
 - LUKS encrypted LVM partition
-- Secure Boot
+- Enabled Secure Boot
+- Fish shell
+- Autologin into desktop environment
 
 Arch will be installed on bare metal using the entire space of the drive.
 
