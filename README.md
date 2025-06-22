@@ -1,5 +1,6 @@
 # **🐧ARCH + 🗃️LVM + 🔐LUKS + 🛅Secure Boot**
 
+![GNOME](https://github.com/lxr4m/ARCH-LVM-LUKS-SB/blob/4a4aa51283688b9e86f15281f161adbf34b4ed5d/Arch%20SB.png)
 
 
 # DISCLAIMER
