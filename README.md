@@ -11,85 +11,6 @@ This setup guide is for minimal Arch installation with following features:
 
 Arch will be installed on bare metal using the entire space of the drive.
 
-# Table of Contents
-
-- [Preparation](#preparation)
-  - [Set Comfortable Font](#set-comfortable-font)
-  - [(Optional) Configure Wireless Network](#optional-configure-wireless-network)
-  - [Set Root Password for SSH Connection](#set-root-password-for-ssh-connection)
-  - [Get Your Local IP](#get-your-local-ip)
-  - [SSH from Another Computer on Your Network](#ssh-from-another-computer-on-your-network)
-- [Begin Installation](#begin-installation)
-  - [Update Arch Keyring](#update-arch-keyring)
-  - [Enable Network Time Protocol (NTP)](#enable-network-time-protocol-(NTP))
-  - [Partition the Drive for LVM on LUKS](#partition-the-drive-for-lvm-on-luks)
-    - [Check the Name of the Drive](#check-the-name-of-the-drive)
-    - [Use cfdisk to Create the Partitions](#use-cfdisk-to-create-the-partitions)
-  - [Format Partitions](#format-partitions)
-    - [EFI Partition](#efi-partition)
-    - [Boot Partition](#boot-partition)
-  - [Encrypt LVM Partition](#encrypt-lvm-partition)
-    - [Create Encrypted Container](#create-encrypted-container)
-    - [Check LUKS Header Information](#optional-check-luks-header-information)
-    - [Open Encrypted LUKS Container](#open-encrypted-luks-container)
-  - [Create Volumes](#create-volumes)
-    - [Create Physical Volume](#create-physical-volume)
-    - [Create Volume Group for Logical Volumes](#create-volume-group-for-logical-volumes)
-    - [Create Logical Volumes](#create-logical-volumes)
-    - [Format Logical Volumes](#format-logical-volumes)
-    - [Mount Filesystems](#mount-filesystems)
-    - [Enable Swap Space](#enable-swap-space)
-  - [Install Base System](#install-base-system)
-    - [Pacstrap System Packages](#pacstrap-system-packages)
-    - [Generate /etc/fstab File](#generate-etcfstab-file)
-    - [Make /tmp Write to RAM](#make-tmp-write-to-ram)
-  - [Chroot into the New System](#chroot-into-the-new-system)
-    - [Refresh Pacman Keyring](#refresh-pacman-keyring)
-  - [Set Up the Environment](#set-up-the-environment)
-    - [Set Your Time Zone](#set-your-time-zone)
-    - [Enable the Specified Locales](#enable-the-specified-locales)
-    - [Generate Locales](#generate-locales)
-    - [Update locale.conf File](#update-localedef-file)
-    - [Set Machine Hostname in /etc/hostname](#set-machine-hostname-in-etchostname)
-    - [Add Local Domain Info to /etc/hosts](#add-local-domain-info-to-etchosts)
-    - [Enable Pacman Animation and Color](#enable-pacman-animation-and-color)
-  - [Install Additional Packages](#install-additional-packages)
-    - [System](#system)
-    - [Tools](#tools)
-    - [Connections](#connections)
-    - [Fonts](#fonts)
-  - [Install Desktop Environment](#install-desktop-environment)
-    - [Barebones GNOME Setup](#barebones-gnome-setup)
-    - [Standard GNOME Setup](#standard-gnome-setup)
-  - [Set Autologin for DE](#set-autologin-for-de)
-  - [Enable Services](#enable-services)
-  - [Set Up User Accounts](#set-up-user-accounts)
-    - [Set Root Password](#set-root-password)
-    - [Create a User](#create-a-user)
-    - [Edit the Sudoers](#edit-the-sudoers)
-    - [(Optional) Set Persistent Console Font](#optional-set-persistent-console-font)
-  - [Configure mkinitcpio.conf Hooks for systemd Initramfs](#configure-mkinitcpio.conf-hooks-for-systemd-initramfs)
-  - [Recreate the Initramfs Image](#recreate-the-initramfs-image)
-  - [Configure GRUB](#configure-grub)
-    - [Install Grub with Secure Boot Support](#install-grub-with-secure-boot-support)
-    - [Get UUID for the Encrypted Drive](#get-uuid-for-the-encrypted-drive)
-    - [Specify Root in Grub](#specify-root-in-grub)
-  - [Re-generate Grub Config](#re-generate-grub-config)
-  - [Exit Chroot and Reboot](#exit-chroot-and-reboot)
-- [Enable Secure Boot](#enable-secure-boot)
-  - [UEFI Config](#uefi-config)
-  - [Setup Using SBCTL](#setup-using-sbctl)
-    - [Install sbctl](#install-sbctl)
-    - [Check Secure Boot Status](#check-secure-boot-status)
-    - [Create Secure Boot Keys](#create-secure-boot-keys)
-    - [Enroll Custom Secure Boot Keys](#enroll-custom-secure-boot-keys)
-    - [Confirm Setup Mode is Disabled](#confirm-setup-mode-is-disabled)
-    - [Sign Bootloader and Kernels Before Rebooting](#sign-bootloader-and-kernels-before-rebooting)
- - [Notes](#notes)
-    - [Backup LUKS Header](#backup-luks-header)
-- [Congratulations! 🎉](#congratulations)
-
-
 # PREPARATION
 ### BIOS
 MAKE SURE YOUR BIOS IS VERSION 1.17 OR GREATER. Failure to do so may result in the BIOS setting changes BRICKING YOUR LAPTOP
@@ -299,7 +220,8 @@ lsblk -f
 ```sh
 pacstrap -K /mnt base base-devel coreutils cryptsetup dkms e2fsprogs efibootmgr grub intel-ucode linux linux-firmware linux-headers lvm2 man-db man-pages nano texinfo terminus-font tpm2-tools vim
 ```
-> [!important] INTEL or AMD?
+> [!important]
+> INTEL or AMD?
 > Replace `intel-ucode` with `amd-ucode` if you have an AMD CPU
 
 ### Generate `/etc/fstab` file
