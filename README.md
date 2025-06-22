@@ -358,6 +358,28 @@ visudo
 ```
 Uncomment `%wheel ALL=(ALL) ALL`
 
+### Set persistent console font
+```sh
+sudo nano /etc/vconsole.conf
+```
+Append to the file:
+```sh
+FONT=ter-128b
+CONSOLEFONT=ter-128b
+```
+
+> [!tip]
+> 💨 SPEEDRUN COMMAND
+> ```sh
+> echo -e "FONT=ter-128b\nCONSOLEFONT=ter-128b" >> /etc/vconsole.conf && cat /etc/vconsole.conf
+> ```
+
+To list available console font names:
+```sh
+ls /usr/share/kbd/consolefonts/
+```
+
+
 ## Configure `mkinitcpio.conf` HOOKS for **systemd** initramfs
 > Make sure the [lvm2](https://archlinux.org/packages/?name=lvm2) package is [installed](https://wiki.archlinux.org/title/Install "Install")
 
@@ -567,27 +589,6 @@ To add some bling to your terminal
 This will uncomment `Color` and `ILoveCandy` in _/etc/pacman.conf_:
 ```sh
 sed -i -e 's/^#Color/Color/' -e '/^Color/a ILoveCandy' /etc/pacman.conf
-```
-
-#### Set persistent console font
-```sh
-sudo nano /etc/vconsole.conf
-```
-Append to the file:
-```sh
-FONT=ter-128b
-CONSOLEFONT=ter-128b
-```
-
-> [!tip]
-> 💨 SPEEDRUN COMMAND
-> ```sh
-> echo -e "FONT=ter-128b\nCONSOLEFONT=ter-128b" >> /etc/vconsole.conf && cat /etc/vconsole.conf
-> ```
-
-To list available console font names:
-```sh
-ls /usr/share/kbd/consolefonts/
 ```
 
 # Congratulations! 🎉
