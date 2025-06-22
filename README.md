@@ -1,5 +1,7 @@
 # **🐧ARCH + 🗃️LVM + 🔐LUKS + 🛅Secure Boot**
 
+
+
 # DISCLAIMER
 I am not responsible for any damages, loss of data, system corruption, or any other issues you may somehow get by following this guide.
 I recommend consulting with Arch Wiki in case you need clarifications or want to do things differently.
@@ -578,7 +580,7 @@ Should be:
 - Secure Boot:    ✓ Enabled
 - Vendor Keys:    none
 
-[[https://github.com/lxr4m/ARCH-LVM-LUKS-SB/blob/4a4aa51283688b9e86f15281f161adbf34b4ed5d/Arch%20SB.png]]
+![ArchSB](https://github.com/lxr4m/ARCH-LVM-LUKS-SB/blob/4a4aa51283688b9e86f15281f161adbf34b4ed5d/Arch%20SB.png)
 
 # NOTES
 ### Backup LUKS Header
