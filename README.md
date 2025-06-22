@@ -523,6 +523,7 @@ sudo cryptsetup luksHeaderRestore /dev/<your-disk-luks> --header-backup-file /pa
 
 ### Install Additional Packages
 Some useful packages you might like to install
+
 **System**
 ```sh
 sudo pacman -S btop curl git inxi lm_sensors sbsigntools mokutil mtools rsync timeshift
