@@ -166,7 +166,8 @@ cryptsetup luksFormat -v --cipher aes-xts-plain64 --key-size 512 --hash sha512 -
 
 > [!important] 
 > USE A STRONG PASSWORD!
-> High entropy is your friend. At least 65 bits. Which means 14 random chars from a-z or a random English sentence of \> 108 characters length
+> High entropy is your friend. At least 65 bits.
+> Which means 14 random chars from a-z or a random English sentence of \> 108 characters length
 
 
 #### (Optional) Check LUKS header information
