@@ -8,6 +8,85 @@ This setup guide is for minimal Arch system with following features:
 
 Arch will be installed on bare metal using the entire space of the drive.
 
+# Table of Contents
+
+- [Description](#description)
+- [Preparation](#preparation)
+  - [Set Comfortable Font](#set-comfortable-font)
+  - [(Optional) Configure Wireless Network](#optional-configure-wireless-network)
+  - [Set Root Password for SSH Connection](#set-root-password-for-ssh-connection)
+  - [Get Your Local IP](#get-your-local-ip)
+  - [SSH from Another Computer on Your Network](#ssh-from-another-computer-on-your-network)
+- [Begin Installation](#begin-installation)
+  - [Update Arch Keyring](#update-arch-keyring)
+  - [Sync System Clock](#sync-system-clock)
+  - [Partition the Drive for LVM on LUKS](#partition-the-drive-for-lvm-on-luks)
+    - [Check the Name of the Drive](#check-the-name-of-the-drive)
+    - [Use cfdisk to Create the Partitions](#use-cfdisk-to-create-the-partitions)
+  - [Format Partitions](#format-partitions)
+    - [EFI Partition](#efi-partition)
+    - [Boot Partition](#boot-partition)
+  - [Encrypt LVM Partition](#encrypt-lvm-partition)
+    - [Create Encrypted Container](#create-encrypted-container)
+    - [Check LUKS Header Information](#optional-check-luks-header-information)
+    - [Open Encrypted LUKS Container](#open-encrypted-luks-container)
+  - [Backup LUKS Header](#backup-luks-header)
+  - [Create Volumes](#create-volumes)
+    - [Create Physical Volume](#create-physical-volume)
+    - [Create Volume Group for Logical Volumes](#create-volume-group-for-logical-volumes)
+    - [Create Logical Volumes](#create-logical-volumes)
+    - [Format Logical Volumes](#format-logical-volumes)
+    - [Mount Filesystems](#mount-filesystems)
+    - [Enable Swap Space](#enable-swap-space)
+  - [Install Base System](#install-base-system)
+    - [Pacstrap System Packages](#pacstrap-system-packages)
+    - [Generate /etc/fstab File](#generate-etcfstab-file)
+    - [Make /tmp Write to RAM](#make-tmp-write-to-ram)
+  - [Chroot into the New System](#chroot-into-the-new-system)
+    - [Refresh Pacman Keyring](#refresh-pacman-keyring)
+  - [Set Up the Environment](#set-up-the-environment)
+    - [Set Your Time Zone](#set-your-time-zone)
+    - [Enable the Specified Locales](#enable-the-specified-locales)
+    - [Generate Locales](#generate-locales)
+    - [Update locale.conf File](#update-localedef-file)
+    - [Set Machine Hostname in /etc/hostname](#set-machine-hostname-in-etchostname)
+    - [Add Local Domain Info to /etc/hosts](#add-local-domain-info-to-etchosts)
+    - [Enable Pacman Animation and Color](#enable-pacman-animation-and-color)
+  - [Install Additional Packages](#install-additional-packages)
+    - [System](#system)
+    - [Tools](#tools)
+    - [Connections](#connections)
+    - [Fonts](#fonts)
+  - [Install Desktop Environment](#install-desktop-environment)
+    - [Barebones GNOME Setup](#barebones-gnome-setup)
+    - [Standard GNOME Setup](#standard-gnome-setup)
+  - [Set Autologin for DE](#set-autologin-for-de)
+  - [Enable Services](#enable-services)
+  - [Set Up User Accounts](#set-up-user-accounts)
+    - [Set Root Password](#set-root-password)
+    - [Create a User](#create-a-user)
+    - [Edit the Sudoers](#edit-the-sudoers)
+    - [(Optional) Set Persistent Console Font](#optional-set-persistent-console-font)
+  - [Configure mkinitcpio.conf Hooks for systemd Initramfs](#configure-mkinitcpio.conf-hooks-for-systemd-initramfs)
+  - [Recreate the Initramfs Image](#recreate-the-initramfs-image)
+  - [Configure GRUB](#configure-grub)
+    - [Install Grub with Secure Boot Support](#install-grub-with-secure-boot-support)
+    - [Get UUID for the Encrypted Drive](#get-uuid-for-the-encrypted-drive)
+    - [Specify Root in Grub](#specify-root-in-grub)
+  - [Re-generate Grub Config](#re-generate-grub-config)
+  - [Exit Chroot and Reboot](#exit-chroot-and-reboot)
+- [Enable Secure Boot](#enable-secure-boot)
+  - [UEFI Config](#uefi-config)
+  - [Setup Using SBCTL](#setup-using-sbctl)
+    - [Install sbctl](#install-sbctl)
+    - [Check Secure Boot Status](#check-secure-boot-status)
+    - [Create Secure Boot Keys](#create-secure-boot-keys)
+    - [Enroll Custom Secure Boot Keys](#enroll-custom-secure-boot-keys)
+    - [Confirm Setup Mode is Disabled](#confirm-setup-mode-is-disabled)
+    - [Sign Bootloader and Kernels Before Rebooting](#sign-bootloader-and-kernels-before-rebooting)
+- [Congratulations! 🎉](#congratulations)
+
+
 # PREPARATION
 1. Download the latest ISO from [archlinux.org](https://archlinux.org/download/)
 2. Transfer the ISO to the USB drive using [Rufus](https://rufus.ie/en/) or [Ventoy](https://www.ventoy.net/en/index.html)
@@ -149,23 +228,7 @@ Give it a name you want at the end of the command (e.g. cryptluks)
 ```sh
 cryptsetup open /dev/nvme0n1p3 cryptluks
 ```
-
 The decrypted container is now available at `/dev/mapper/cryptluks`
-
-### Backup LUKS Header
-
-It's important for your data security.
-Keep the backup file in a safe place, such as a USB drive. 
-
-```sh
-cryptsetup luksHeaderBackup /dev/nvme1n0p3 --header-backup-file /path/to/backup_header_file
-```
-
-#### (Optional) Restore header from backup
-
-```sh
-sudo cryptsetup luksHeaderRestore /dev/<your-disk-luks> --header-backup-file /path/to/backup_header_file
-```
 
 ## Create Volumes
 
@@ -484,6 +547,24 @@ exit
 umount -R /mnt && swapoff -a # This allows noticing any "busy" partitions, and finding the cause with fuser
 reboot
 ```
+
+# NOTES
+### Backup LUKS Header
+It's important for your data security in case something goes wrong and the header is damaged.
+Keep the backup file in a safe place, such as a USB drive. 
+
+```sh
+sudo cryptsetup luksHeaderBackup /dev/nvme1n0p3 --header-backup-file /path/to/backup_header_file/luks-header-backup-$(date -I)
+```
+- Replace _/path/to/backup_header_file/_ with the actual directory where you want to save the backup file
+- `$(date -I)` will append the current date in ISO format to the filename
+
+#### (Optional) Restore header from backup
+
+```sh
+sudo cryptsetup luksHeaderRestore /dev/<your-disk-luks> --header-backup-file /path/to/backup_header_file
+```
+
 
 # Enable Secure Boot
 ## UEFI config
