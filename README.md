@@ -2,6 +2,13 @@
 
 ![GNOME](https://github.com/lxr4m/ARCH-LVM-LUKS-SB/blob/e97cfcc26fd071b21f2da5f83507bfb7f124bd48/GNOME.png)
 
+# Table of Contents
+- [DISCLAIMER](#disclaimer)
+- [PREPARATION](#preparation)
+- [INSTALLATION](#installation)
+- [Enable Secure Boot](#enable-secure-boot)
+- [NOTES](#notes)
+
 
 # DISCLAIMER
 I am not responsible for any damages, loss of data, system corruption, or any other issues you may somehow get by following this guide.
