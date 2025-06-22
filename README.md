@@ -324,12 +324,12 @@ We will install GNOME with GDM greeter.
 Options:
 1. **Barebones GNOME** setup
 ```sh
-pacman -S gnome-shell gdm gnome-control-center gnome-backgrounds gnome-keyring xdg-user-dirs-gtk network-manager-applet terminator nautilus-python nautilus
+pacman -S gnome-shell gdm gnome-control-center gnome-backgrounds gnome-keyring xdg-user-dirs-gtk terminator nautilus-python nautilus
 ```
 
 2. **Standard GNOME** setup
 ```sh
-pacman -S gdm gnome nautilus-python
+pacman -S gdm gnome
 ```
 
 #### Enable GDM Service
@@ -526,7 +526,7 @@ Some useful packages you might like to install
 
 **System**
 ```sh
-sudo pacman -S btop curl git inxi lm_sensors sbsigntools mokutil mtools rsync timeshift
+sudo pacman -S btop curl git inxi lm_sensors sbsigntools mokutil mtools nautilus-python rsync timeshift
 ```
 **Tools**
 ```sh
