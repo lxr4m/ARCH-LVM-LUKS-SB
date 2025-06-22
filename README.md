@@ -588,7 +588,7 @@ Should be:
 It's important for your data security in case something goes wrong and the header is damaged.
 Keep the backup file in a safe place, such as a USB drive. 
 ```sh
-sudo cryptsetup luksHeaderBackup /dev/nvme1n0p3 --header-backup-file /path/to/backup_header_file/luks-header-backup-$(date -I)
+sudo cryptsetup luksHeaderBackup /dev/nvme0n1p3 --header-backup-file /path/to/backup_header_file/luks-header-backup-$(date -I)
 ```
 - Replace _/dev/nvme1n0p3_ with your encrypted LUKS partition path if different
 - Replace _/path/to/backup_header_file/_ with the actual directory where you want to save the backup file
