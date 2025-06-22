@@ -16,8 +16,6 @@ Arch will be installed on bare metal using the entire space of the drive.
 
 # PREPARATION
 ### BIOS
-MAKE SURE YOUR BIOS IS VERSION 1.17 OR GREATER. Failure to do so may result in the BIOS setting changes BRICKING YOUR LAPTOP
-
 BIOS Settings:
 - Security -> **Secure Boot** -> Disabled
 - Configs -> Thunderbolt (TM) 3 -> **Thunderbolt BIOS Assist Mode** -> Enabled (Not required if you are using kernel 4.20 or newer)
