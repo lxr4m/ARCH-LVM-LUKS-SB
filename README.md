@@ -19,7 +19,6 @@ BIOS Settings:
 - Security -> **Secure Boot** -> Disabled
 - Configs -> Thunderbolt (TM) 3 -> **Thunderbolt BIOS Assist Mode** -> Enabled (Not required if you are using kernel 4.20 or newer)
 
-
 ### Arch ISO
 1. Download the latest ISO from [archlinux.org](https://archlinux.org/download/)
 2. Write the ISO to the USB drive using [Rufus](https://rufus.ie/en/) or [Ventoy](https://www.ventoy.net/en/index.html)
@@ -579,7 +578,7 @@ Should be:
 - Secure Boot:    ✓ Enabled
 - Vendor Keys:    none
 
-![[Arch SB.png]]
+[[https://github.com/lxr4m/ARCH-LVM-LUKS-SB/blob/4a4aa51283688b9e86f15281f161adbf34b4ed5d/Arch%20SB.png]]
 
 # NOTES
 ### Backup LUKS Header
