@@ -308,18 +308,59 @@ echo -e "127.0.0.1\tlocalhost\n::1\t\tlocalhost\n127.0.1.1\tarch.localdomain\tar
 127.0.1.1	    arch.localdomain	arch
 ```
 
-### Install Extra Packages
+### SOFTWARE
+#### Install Extra Packages
 Feel free to add the ones you need
 ```sh
-pacman -S bluez bluez-utils fastfetch firefox fwupd network-manager-applet networkmanager openssh pipewire pipewire-audio sbctl sof-firmware
+pacman -S bluez bluez-utils fastfetch firefox fish fwupd git network-manager-applet networkmanager openssh pipewire pipewire-audio sbctl sof-firmware
 ```
 
-#### Enable Services
+##### Enable Services
 ```sh
 systemctl enable bluetooth.service NetworkManager sshd
 ```
 
-### Install Desktop Environment
+#### (Optional) Install Additional Packages
+Some useful packages you might like to install
+
+**System**
+```sh
+sudo pacman -S btop curl inxi lm_sensors sbsigntools mokutil mtools rsync timeshift
+```
+
+**Tools**
+```sh
+sudo pacman -S keepassxc libreoffice-fresh rhythmbox veracrypt vlc
+```
+
+**Network**
+```sh
+sudo pacman -S firewalld ipset iptables-nft
+```
+
+#### Install YAY
+Useful AUR helper
+```sh
+git clone https://aur.archlinux.org/yay.git &&
+cd yay &&
+makepkg -si &&
+cd .. &&
+rm -rf yay
+```
+
+#### Add Terminal Bling 
+By Enabling Pacman Animation and Color.
+This will uncomment `Color` and `ILoveCandy` in _/etc/pacman.conf_:
+```sh
+sed -i -e 's/^#Color/Color/' -e '/^Color/a ILoveCandy' /etc/pacman.conf
+```
+
+#### Install fonts
+```sh
+sudo pacman -S ttf-firacode-nerd ttf-dejavu ttf-liberation noto-fonts ttf-jetbrains-mono ttf-fira-code
+```
+
+#### Install Desktop Environment
 We will install GNOME with GDM greeter.
 Options:
 1. **Barebones GNOME** setup
@@ -329,16 +370,27 @@ pacman -S gnome-shell gdm gnome-control-center gnome-backgrounds gnome-keyring x
 
 2. **Standard GNOME** setup
 ```sh
-pacman -S gdm gnome
+pacman -S gdm gnome nautilus-python
 ```
 
-#### Enable GDM Service
+##### Enable GDM Service
 ```sh
 systemctl enable gdm.service
 ```
 
-### Set up User accounts
-Installing Arch creates the root user
+#### Enable Autologin for GNOME
+```sh
+sudo nano /etc/gdm/custom.conf
+```
+Add under [daemon] section
+```sh
+AutomaticLoginEnable=True
+AutomaticLogin=iron
+```
+
+
+### USER ACCOUNTS
+Installing Arch creates the root user.
 #### Set Root password
 ```sh
 passwd
@@ -347,9 +399,9 @@ passwd
 #### Create a User
 Replace "_user_" with a desired user name
 ```sh
-useradd -m -G wheel user && passwd user
+useradd -m -G wheel -s /usr/bin/fish user && passwd user
 ```
-This will create a new user and add it to the wheel group.
+This will create a new user, add it to the wheel group, and make Fish default shell.
 
 ##### Edit the Sudoers 
 To allow your user to use SUDO
@@ -527,6 +579,8 @@ Should be:
 - Secure Boot:    ✓ Enabled
 - Vendor Keys:    none
 
+![[Arch SB.png]]
+
 # NOTES
 ### Backup LUKS Header
 It's important for your data security in case something goes wrong and the header is damaged.
@@ -543,36 +597,6 @@ sudo cryptsetup luksHeaderBackup /dev/nvme1n0p3 --header-backup-file /path/to/ba
 sudo cryptsetup luksHeaderRestore /dev/<your-disk-luks> --header-backup-file /path/to/backup_header_file
 ```
 
-### Install Additional Packages
-Some useful packages you might like to install
-
-**System**
-```sh
-sudo pacman -S btop curl git inxi lm_sensors sbsigntools mokutil mtools nautilus-python rsync timeshift
-```
-**Tools**
-```sh
-sudo pacman -S keepassxc libreoffice-fresh rhythmbox veracrypt vlc
-```
-**Network**
-```sh
-sudo pacman -S firewalld ipset iptables-nft
-```
-**Fonts**
-```sh
-sudo pacman -S ttf-firacode-nerd ttf-dejavu ttf-liberation noto-fonts ttf-jetbrains-mono ttf-fira-code
-```
-
-### Enable Autologin for GNOME
-```sh
-sudo nano /etc/gdm/custom.conf
-```
-Add under [daemon] section
-```sh
-AutomaticLoginEnable=True
-AutomaticLogin=iron
-```
-
 ### Optimize Pacman Mirrorlist
 This will improve the speed of your downloads.
 The mirrors which are the closest to you should be at the top and the mirrors which you do not need can be deleted. 
@@ -581,14 +605,6 @@ You can have multiple countries on the list.
 Edit `/etc/pacman.d/mirrorlist`:
 ```sh
 sudo nano /etc/pacman.d/mirrorlist
-```
-
-### Add Bling
-#### Enable Pacman animation and color
-To add some bling to your terminal
-This will uncomment `Color` and `ILoveCandy` in _/etc/pacman.conf_:
-```sh
-sed -i -e 's/^#Color/Color/' -e '/^Color/a ILoveCandy' /etc/pacman.conf
 ```
 
 # Congratulations! 🎉
