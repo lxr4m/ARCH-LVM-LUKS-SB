@@ -1,4 +1,4 @@
-# 🐧ARCH + 🗃️LVM + 🔐LUKS
+# 🐧ARCH + 🗃️LVM + 🔐LUKS + 🛅Secure Boot
 # DESCRIPTION
 This setup guide is for minimal Arch system with following features:
 - GNOME desktop environment
@@ -10,7 +10,6 @@ Arch will be installed on bare metal using the entire space of the drive.
 
 # Table of Contents
 
-- [Description](#description)
 - [Preparation](#preparation)
   - [Set Comfortable Font](#set-comfortable-font)
   - [(Optional) Configure Wireless Network](#optional-configure-wireless-network)
