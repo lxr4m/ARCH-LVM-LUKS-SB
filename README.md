@@ -333,7 +333,7 @@ echo -e "127.0.0.1\tlocalhost\n::1\t\tlocalhost\n127.0.1.1\tarch.localdomain\tar
 ```sh
 127.0.0.1     localhost
 ::1           localhost
-127.0.1.1	  arch.localdomain	arch
+127.0.1.1    arch.localdomain    arch
 ```
 
 ### SOFTWARE
@@ -346,6 +346,13 @@ pacman -S bluez bluez-utils fastfetch firefox fish fwupd git network-manager-app
 ##### Enable Services
 ```sh
 systemctl enable bluetooth.service NetworkManager sshd
+```
+
+#### Add Terminal Bling 
+By Enabling Pacman Animation and Color.
+This will uncomment `Color` and `ILoveCandy` in _/etc/pacman.conf_:
+```sh
+sed -i -e 's/^#Color/Color/' -e '/^Color/a ILoveCandy' /etc/pacman.conf
 ```
 
 #### (Optional) Install Additional Packages
@@ -376,13 +383,6 @@ cd .. &&
 rm -rf yay
 ```
 
-#### Add Terminal Bling 
-By Enabling Pacman Animation and Color.
-This will uncomment `Color` and `ILoveCandy` in _/etc/pacman.conf_:
-```sh
-sed -i -e 's/^#Color/Color/' -e '/^Color/a ILoveCandy' /etc/pacman.conf
-```
-
 #### Install fonts
 ```sh
 sudo pacman -S ttf-firacode-nerd ttf-dejavu ttf-liberation noto-fonts ttf-jetbrains-mono ttf-fira-code
@@ -393,29 +393,18 @@ We will install GNOME with GDM greeter.
 Options:
 1. **Barebones GNOME** setup
 ```sh
-pacman -S gnome-shell gdm gnome-control-center gnome-backgrounds gnome-keyring xdg-user-dirs-gtk terminator nautilus-python nautilus
+pacman -S gnome-shell gdm gnome-control-center gnome-backgrounds gnome-keyring xdg-user-dirs-gtk alacritty nautilus-python nautilus
 ```
 
 2. **Standard GNOME** setup
 ```sh
-pacman -S gdm gnome nautilus-python
+pacman -S gnome gdm nautilus-python
 ```
 
 ##### Enable GDM Service
 ```sh
 systemctl enable gdm.service
 ```
-
-#### Enable Autologin for GNOME
-```sh
-sudo nano /etc/gdm/custom.conf
-```
-Add under [daemon] section
-```sh
-AutomaticLoginEnable=True
-AutomaticLogin=iron
-```
-
 
 ### USER ACCOUNTS
 Installing Arch creates the root user.
@@ -437,6 +426,16 @@ To allow your user to use SUDO
 visudo
 ```
 Uncomment `%wheel ALL=(ALL) ALL`
+
+##### Enable Autologin for GNOME
+```sh
+sudo nano /etc/gdm/custom.conf
+```
+Add under [daemon] section
+```sh
+AutomaticLoginEnable=True
+AutomaticLogin=user
+```
 
 ### Set persistent console font
 ```sh
