@@ -324,16 +324,16 @@ echo "arch" > /etc/hostname | tee -a /etc/hostname
 ```
 
 #### Add Local domain info to `/etc/hosts`
-Replace "_arch_" with hostname used in `/etc/hostname`
+Replace "_arch_" with hostname used in `/etc/hosts`
 ```sh
 echo -e "127.0.0.1\tlocalhost\n::1\t\tlocalhost\n127.0.1.1\tarch.localdomain\tarch" | tee -a /etc/hosts
 ```
 
-`/etc/hostname` should look like this:
+`/etc/hosts` should look like this:
 ```sh
 127.0.0.1     localhost
 ::1           localhost
-127.0.1.1	    arch.localdomain	arch
+127.0.1.1	  arch.localdomain	arch
 ```
 
 ### SOFTWARE
